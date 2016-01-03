@@ -1,0 +1,11 @@
+type exception = NotFoundException | SomethingException
+
+fun a(){
+  raise NotFoundException
+}
+
+try{
+  a()
+}catch(NotFoundException){
+  print("caught")
+}

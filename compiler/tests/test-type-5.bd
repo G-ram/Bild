@@ -1,0 +1,4 @@
+fun a(){
+  type b = R | S | P | L | K
+  return R
+}

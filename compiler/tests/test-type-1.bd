@@ -1,0 +1,7 @@
+type a = B of int | C of string {
+  fun printHello(){
+    print("hello")
+  }
+}
+d = C("hello")
+d.printHello()

@@ -1,0 +1,4 @@
+fun returnTuple(){
+  return (8, "hey", 6.4)
+}
+print(returnTuple()(1));

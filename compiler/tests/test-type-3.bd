@@ -1,0 +1,18 @@
+type employee = E{
+	sal = 0
+	setSalary(aSal){sal = aSal}
+	getSalary(){return sal}
+}
+type hourly_employee = HE of E{
+	hours = 40
+	setSalary(aSal){sal = aSal/40}
+}
+fun addSals(s1, s2){return s1 + s2}
+em1 = E
+em1.setSalary(500)
+em2 = HE
+em2.setSalary(500)
+sum = addSals(em1.getSalary(), em2.getSalary())
+print(sum)
+concat = addSals(""+em1.getSalary(), ""+em2.getSalary())
+print(concat)
