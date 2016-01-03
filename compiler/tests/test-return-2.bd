@@ -1,0 +1,7 @@
+fun a(b){
+  return c(b)
+}
+fun c(d){
+  return d*2
+}
+print(a(7))

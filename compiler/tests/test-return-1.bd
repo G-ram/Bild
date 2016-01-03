@@ -1,0 +1,8 @@
+fun a(b){
+  if(b == 1){
+    return 7
+  }else{
+    return 8
+  }
+}
+print(a(1))

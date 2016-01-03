@@ -1,0 +1,5 @@
+type test = INT of int
+a = INT(5)
+match a with
+  INT(x) when x = 4 {}
+  INT(_) {print("found")}

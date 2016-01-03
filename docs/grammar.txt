@@ -1,0 +1,108 @@
+type-identifier = [A-Z]+[A-Za-z0-9_]*
+identifier = [A-Za-z]+[A-Za-z0-9_]*
+if			import		while		raise		
+else		of			for			return		
+print		elif		is			in			
+try			break		fun			true		
+false		catch		when
++			*			>=			||
+-			==			<=			&&
+\			!=			%			!
+integer-constant ::= [-]?[0-9]+
+double-constant ::= [-]?([0-9]+.[0-9]*|[0-9]*.[0-9]+)(e[-]?[0-9]+)?
+bool-constant ::= 'true|false'
+char-constant::= '[^']'
+string-literal ::= "[^"]"
+table-literal ::= {((string-constant|integer-constant:any-constant),*|any-constant,*)
+					(string-constant|integer-constant:any-constant)|any-constant))?}
+any-constant ::= type-identifier|identifier|integer-constant
+				|string-literal|table-literal|bool-constant
+				|char-constant|integer-constant|double-constant
+(			)			[			]
+{			}			|			;
+?			+=			-=			*=
+/=			%=			,			@
+:			?
+`			"			\
+tuple ::= (tuple-expression-list)
+tuple-expression-list ::= expression|_
+						|(expression|_), tuple-expression-list
+identifier? ::= anyType?
+
+identifier!
+try identifier expression : expression;
+expression ::= try? prefix-expression binary-expressions?
+expression-list ::= expression | expression, expression-list
+primary-expression ::= identifier | constant | literal | (expression)
+prefix-operator ::= - | ++ | --
+prefix-expression ::= prefix-operator? postfix-expression
+postfix-operator ::= ++ | -- | ! | ?
+postfix-expression ::= primary-expression
+						| postfix-expression[expression-list] 
+						| postfix-expression(argument-expression-list?)
+						| postfix-expression(postfix-expression)
+						| postfix-expression postfix-operator
+binary-operator ::= + | - | / | * | %
+assignment-operator ::= = | += | -= | *= | /= | %= | !=
+relational-operator ::= == | != | <= | >= | > | <
+logical-operator ::= && | ||
+
+
+binary-expression ::= binary-operator prefix-expression
+						| assignment-operator try? prefix-expression
+						| ? try? expression : try? prefix-expression
+						| relational-operator prefix-expression
+						| logical-operator prefix-expression
+						| is prefix-expression
+						
+binary-expressions ::= binary-expression binary-expressions?
+
+identifier = try? identitifier op prefix-expression
+=> identifier op= try? prefix-expression
+
+function-declarator ::= identifier(arg-list?) compound-statement
+arg-list ::= identifier | identifier arg-list
+type-declarator ::= type identifier = the
+type-list ::= type-identifier (of type compound-statement?)? 
+				| type-identifier (of type compound-statement?)? type-list
+type-body ::= (statement|function-declarator)
+				|(statement|function-declarator) type-body
+type ::= type-identifier|basic-type|tuple-type
+basic-type ::= int|double|bool|char|string|table of basic-type
+tuple-type ::= (tuple-type-list)
+tuple-type-list ::= basic-type|type-identifier|_
+					|(basic-type|type-idenditifer|_),tuple-type-list
+import-declarator ::= import identifier | (.|..)/(../)*import-path-identifier
+import-path-identifier ::= identifier | idenitifer/import-path-identifier
+statement ::= (expression-statement
+				| compound-statement
+				| conditional-statement
+				| type-declarator
+				| print-statement
+				| return-statement
+				| break-statement
+				| raise-statement)?;
+declarator ::= function-declarator | import-declarator | type-declarator
+expression-statement ::= expression
+return-statement ::= return expression
+break-statement ::= break
+raise-statement ::= raise type
+print-statement ::= print(expression)
+compound-statement ::= statement-list
+statement-list ::= {statement} | {statement statement-list}
+conditional-statement ::= if-statement
+							| try-statement
+							| while-statement
+							| for-statement
+							| match-statement
+if-statement ::= if(expression) compound-statement else-statement?
+else-statement ::= el if-statement | else compound-statement
+try-statement ::= try compount-statement catch(type-identifier) compound-statement
+while-statement ::= while(expression) compound-statement
+for-statement ::= for(expression; expression; expression) compound-statement
+					| for(identifier in expression) compound-statement
+match-statement ::= match identifier with match-list
+match-list ::= match-conditional compound_statement 
+		| match-conditional compound_statement match-list
+match-conditional ::= (type-identifier | tuple-type 
+						| tuple | identifier | _)(when expression)?

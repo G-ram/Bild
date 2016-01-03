@@ -1,0 +1,4 @@
+a = "hey"
+if(a is string){
+  print("string")
+}

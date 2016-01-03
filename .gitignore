@@ -1,0 +1,14 @@
+*.aux
+*.log
+*.synctex.gz
+*.cmo
+*.cmi
+*.cmx
+*.exe
+*.o
+*.class
+!./compiler/bild_lib/*.class
+parser.ml parser.mli
+scanner.ml
+bild
+.DS_Store

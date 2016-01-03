@@ -1,0 +1,11 @@
+type exception = NotFoundException | SomethingException
+
+fun a(b){
+  if(b > 6){
+    raise SomethingException
+  }else{
+    raise NotFoundException
+  }
+}
+
+a(8)

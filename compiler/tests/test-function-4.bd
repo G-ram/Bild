@@ -1,0 +1,10 @@
+fun GCD(a, b){
+	c = a
+	while(a != 0){
+		c = a
+		a = b % a
+		b = c
+	}
+	return b
+}
+print(GCD(15,9))

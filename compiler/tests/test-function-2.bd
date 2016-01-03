@@ -1,0 +1,4 @@
+fun singleReturn(){
+  return "hey"
+}
+print(singleReturn())

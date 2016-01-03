@@ -1,0 +1,4 @@
+fun noReturn(){
+  print("hey")
+}
+noReturn()
