@@ -10,7 +10,7 @@ NC='\033[0m'
 # Set time limit for all operations
 ulimit -t 30
 
-globallog=testall.log
+globallog=tests.log
 rm -f $globallog
 error=0
 globalerror=0

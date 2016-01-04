@@ -11,4 +11,6 @@
 parser.ml parser.mli
 scanner.ml
 bild
+./compiler/tests/failures/*.out
+./compiler/tests/failures/*.diff
 .DS_Store
