@@ -1,7 +1,7 @@
 fun multiReturn(a){
   if(a == 0){
-    return 4
+    return 4;
   }
-  return 5
+  return 5;
 }
-print(multiReturn(0))
+print(multiReturn(0));

@@ -1,11 +1,11 @@
 type exception = NotFoundException | SomethingException
 
 fun a(){
-  raise NotFoundException
+  raise NotFoundException;
 }
 
 try{
-  a()
+  a();
 }catch(NotFoundException){
-  print("caught")
+  print("caught");
 }

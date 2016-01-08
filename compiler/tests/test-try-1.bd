@@ -1,7 +1,7 @@
 type exception = NotFoundException | SomethingException
 
 try{
-  raise NotFoundException
+  raise NotFoundException;
 }catch(NotFoundException){
-  print("caught")
+  print("caught");
 }

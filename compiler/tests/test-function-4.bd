@@ -1,10 +1,10 @@
 fun GCD(a, b){
-	c = a
+	c = a;
 	while(a != 0){
-		c = a
-		a = b % a
-		b = c
+		c = a;
+		a = b % a;
+		b = c;
 	}
-	return b
+	return b;
 }
-print(GCD(15,9))
+print(GCD(15,9));

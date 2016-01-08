@@ -1,4 +1,5 @@
 type test = INT of int
-b? = INT(5)
-match b with
-  INT(_)? {print("found")}
+b? = INT(5);
+match(b){
+  INT?(_) {print("found");}
+}

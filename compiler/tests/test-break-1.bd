@@ -1,6 +1,6 @@
 for(a = 5; a < 10; a++){
-  print(a)
+  print(a);
   if(a == 7){
-    break
+    break;
   }
 }

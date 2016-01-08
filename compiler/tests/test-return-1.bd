@@ -1,8 +1,8 @@
 fun a(b){
   if(b == 1){
-    return 7
+    return 7;
   }else{
-    return 8
+    return 8;
   }
 }
-print(a(1))
+print(a(1));

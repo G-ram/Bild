@@ -1,0 +1,8 @@
+type suit = DIAMOND | SPADE | HEART | CLUB
+a = DIAMOND;
+match(a){
+  DIAMOND {print("diamond");}
+  | SPADE {}
+  | HEART {}
+  | CLUB {}
+}

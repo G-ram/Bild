@@ -2,10 +2,10 @@ type exception = NotFoundException | SomethingException
 
 fun a(b){
   if(b > 6){
-    raise SomethingException
+    raise SomethingException;
   }else{
-    raise NotFoundException
+    raise NotFoundException;
   }
 }
 
-a(8)
+a(8);

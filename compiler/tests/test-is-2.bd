@@ -1,6 +1,6 @@
-a = 5
+a = 5;
 if(a is char){
-  print("char")
+  print("char");
 }else{
-  print("int")
+  print("int");
 }

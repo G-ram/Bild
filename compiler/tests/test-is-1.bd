@@ -1,4 +1,4 @@
-a = "hey"
+a = "hey";
 if(a is string){
-  print("string")
+  print("string");
 }

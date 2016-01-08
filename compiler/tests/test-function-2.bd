@@ -1,4 +1,4 @@
 fun singleReturn(){
-  return "hey"
+  return "hey";
 }
-print(singleReturn())
+print(singleReturn());

@@ -1,2 +1,2 @@
-a = "hey"
-print(a.length())
+a = "hey";
+print(a.length());

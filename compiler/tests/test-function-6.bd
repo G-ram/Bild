@@ -1,6 +1,6 @@
 fun l(a){
-  print(a.length())
+  print(a.length());
 }
-a = {0,1,2,3,4}
-print(l(a))
-print(l("hey"))
+a = {0,1,2,3,4};
+print(l(a));
+print(l("hey"));

@@ -1,4 +1,4 @@
 fun noReturn(){
-  print("hey")
+  print("hey");
 }
-noReturn()
+noReturn();

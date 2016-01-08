@@ -1,5 +1,6 @@
 type test = INT of int
-a = INT(5)
-match a with
+a = INT(5);
+match(a){
   INT(x) when x = 4 {}
-  INT(x) {print(x)}
+  | INT(x) {print(x);}
+}

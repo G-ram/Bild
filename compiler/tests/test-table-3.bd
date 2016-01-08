@@ -1,6 +1,6 @@
 fun returnTable(){
-  return {}
+  return {};
 }
-a = returnTable()
-a[0] = 0
-print(a)
+a = returnTable();
+a[0] = 0;
+print(a);

@@ -1,2 +1,2 @@
-write("hey","test-io-3.out")
-print("hey")
+write("hey","test-io-3.out");
+print("hey");

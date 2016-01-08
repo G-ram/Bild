@@ -1,2 +1,2 @@
-a = "hey" + 'a'
-print(a)
+a = "hey" + 'a';
+print(a);

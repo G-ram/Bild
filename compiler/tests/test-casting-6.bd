@@ -1,2 +1,2 @@
-a = "hey" + 5.6
-print(a)
+a = "hey" + 5.6;
+print(a);

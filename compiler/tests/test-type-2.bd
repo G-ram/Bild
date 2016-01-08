@@ -1,9 +1,9 @@
 type a = {
   fun printHello(){
-    print("hello")
+    print("hello");
   }
 } B of int | C of string
-d =  B(4)
-e = C("hey")
-d.printHello()
-e.printHello()
+d =  B(4);
+e = C("hey");
+d.printHello();
+e.printHello();

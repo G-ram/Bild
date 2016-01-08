@@ -1,5 +1,5 @@
 type a = B of a
-b = B(4)
-c = B("hey")
-match b with B(x) {print(x)}
-match c with B(x) {print(x)}
+b = B(4);
+c = B("hey");
+match(b){ B(x) {print(x);}}
+match(c){ B(x) {print(x);}}

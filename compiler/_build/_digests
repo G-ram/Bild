@@ -1,0 +1,5 @@
+"Rule: ocaml: ml & cmi -> cmx & o (%=main )": "\141p\bç\146ÂXÕ[ø\150òó0²\014"
+"Rule: ocaml: ml -> cmo & cmi (%=main )": "MEæo×_4EÖ&\023úþ6\007â"
+"Rule: ocaml dependencies ml (%=main )": "Tö\139ÂÎA\005_ÞbÚÝLè(\014"
+"Resource: /Users/Graham/Desktop/Bild/compiler/main.ml": "Ô\029\140Ù\143\000²\004é\128\t\152ìøB~"
+"Rule: ocaml: cmx* & o* -> native (%=main )": "\154\159#Ó|H\131\012\011û\n\003Z\0179ý"
