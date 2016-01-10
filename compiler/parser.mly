@@ -1,6 +1,7 @@
 %{
   open Ast
 %}
+
 %token LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK
 %token PLUS MINUS TIMES DIVIDE MOD
 %token INCREMENT DECREMENT
@@ -22,12 +23,16 @@
 %token <string> ID
 %token <string> OPTID
 /*Precedence and associativity*/
-%nonassoc NOPART
+%nonassoc NOOF
 %nonassoc NOELSE
-%nonassoc ELSE
 %nonassoc NOCOMMA
-%nonassoc FUN TYPE IMPORT PRINT RAISE BREAK RETURN IF FOR WHILE MATCH SEMI UNDER STRING INT DOUBLE CHAR BOOL ID OPTID
-%nonassoc COMMA LPAREN RPAREN LBRACK RBRACK PERIOD FORCE OF INCREMENT DECREMENT LBRACE RBRACE
+%nonassoc ELSE
+%nonassoc ELIF
+%nonassoc COMMA PERIOD RPAREN LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE LBRACE SEMI UNDER
+%nonassoc FUN TYPE PRINT
+%nonassoc IF FOR WHILE IN MATCH WHEN CATCH RAISE BREAK RETURN
+%nonassoc STRING INT DOUBLE CHAR BOOL ID OPTID
+%nonassoc INCREMENT DECREMENT FORCE
 %right ASSIGN PLUSASSIGN MINUSASSIGN TIMESASSIGN DIVIDEASSIGN MODASSIGN FORCEASSIGN
 %left AND
 %left OR
@@ -46,36 +51,31 @@
 %%
 /*Program structure*/
 program:
-  parts EOF {Program($1)}
+  imports parts EOF {Program($1, $2)}
 
 parts:
-  /* */ %prec NOPART {[]}
+  /* */ %prec NOCOMMA {[]}
   | part parts {$1 :: $2}
 
 part:
-  imports {Imports($1)}
-  | fxns {Fxns($1)}
-  | typs {Typs($1)}
-  | stmts {Stmts($1)}
+  fxn {Fxn($1)}
+  | typ %prec NOCOMMA {Typ($1)}
+  | stmt {Stmt($1)}
 
 imports:
-  import %prec NOCOMMA {[$1]}
+  /* */ %prec NOCOMMA {[]}
   | import imports {$1 :: $2}
 
 import:
   IMPORT STRING{ImportDeclarator($2)}
 
-fxns:
-  fxn %prec NOCOMMA {[$1]}
-  | fxn fxns {$1 :: $2}
-
 fxn:
-  FUN ID LPAREN params RPAREN block {
-    FxnDeclarator({
+  FUN ID LPAREN params RPAREN LBRACE stmts RBRACE{
+    {
       name = $2;
       params = $4;
-      body = $6;
-    })
+      body = $7;
+    }
   }
 
 params:
@@ -83,23 +83,20 @@ params:
 	| post_expr {[$1]}
   | post_expr COMMA params {$1::$3}
 
-typs:
-  typ %prec NOCOMMA {[$1]}
-  | typ typs {$1 :: $2}
-
 typ:
-  TYPE ID ASSIGN LBRACE parts RBRACE sub_typs {
-    TypeDeclarator(Type({
+  TYPE ID ASSIGN LBRACE stmts RBRACE sub_typs {
+    {
       name = $2;
       global_body = $5;
       sub_typs = $7;
-    }))
+    }
   }
   | TYPE ID ASSIGN sub_typs {
-    TypeDeclarator(TypeNoGlobal({
+    {
       name = $2;
+      global_body = [];
       sub_typs = $4;
-    }))
+    }
   }
 
 sub_typs:
@@ -107,69 +104,73 @@ sub_typs:
   | sub_typ VERT sub_typs {$1 :: $3}
 
 sub_typ:
-  ID %prec NOCOMMA {Enum($1)}
-  | ID OF post_expr {EnumType($1,$3)}
-  | ID LBRACE parts RBRACE {NoInherit($1, $3)}
-  | ID OF post_expr LBRACE parts RBRACE {Inherit($1,$3,$5)}
+  ID %prec NOOF {Enum($1)}
+  | ID OF expr %prec NOCOMMA {EnumType($1,$3)}
+  | ID LBRACE nested_parts RBRACE {NoInherit($1, $3)}
+  | ID OF expr LBRACE nested_parts RBRACE {Inherit($1,$3,$5)}
+
+nested_parts:
+  /**/ %prec NOCOMMA {[]}
+  | nested_part nested_parts {$1 :: $2}
+
+nested_part:
+  stmt {NestedStmt($1)}
+  | fxn {NestedFxn($1)}
+  | typ %prec NOCOMMA {NestedType($1)}
 
 stmts:
-  stmt %prec NOCOMMA {[$1]}
+  /* */ %prec NOCOMMA {[]}
   | stmt stmts {$1 :: $2}
-
-block:
-  LBRACE RBRACE %prec NOCOMMA {Block([])}
-  | LBRACE stmts RBRACE {Block($2)}
 
 stmt:
   expr SEMI {Expr($1)}
-  | block {$1}
-  /*| typ NEWLINE {NestedTypeDeclarator($1)}*/
+  | LBRACE stmts RBRACE {Block($2)}
+  | typ SEMI {NestedTypeDeclarator($1)}
   | PRINT expr SEMI {Print($2)}
   | RETURN expr SEMI {Return($2)}
   | RAISE expr SEMI{Raise($2)}
   | BREAK SEMI {Break}
-  | WHILE LPAREN expr RPAREN block {Conditional(While($3, $5))}
-  | FOR LPAREN expr SEMI expr SEMI expr RPAREN block {Conditional(For($3, $5, $7, $9))}
-  | FOR LPAREN post_expr IN expr RPAREN block {Conditional(ForIn($3, $5, $7))}
-  | FOR post_expr IN expr RPAREN block {Conditional(ForIn($2, $4, $6))}
+  | WHILE LPAREN expr RPAREN LBRACE stmts RBRACE  {Conditional(While($3, $6))}
+  | FOR LPAREN expr SEMI expr SEMI expr RPAREN LBRACE stmts RBRACE {Conditional(For($3, $5, $7, $10))}
+  | FOR LPAREN post_expr IN expr RPAREN LBRACE stmts RBRACE {Conditional(ForIn($3, $5, $8))}
   | MATCH LPAREN expr RPAREN LBRACE match_conditions RBRACE{Conditional(Match($3, $6))}
-  | TRY block CATCH expr block {Conditional(Try($2, $4, $5))}
-  | IF LPAREN expr RPAREN block %prec NOELSE {Conditional(If($3, $5, Else(Empty)))}
-  | IF LPAREN expr RPAREN block else_stmt {Conditional(If($3, $5, $6))}
+  | TRY LBRACE stmts RBRACE CATCH expr LBRACE stmts RBRACE {Conditional(Try($3, $6, $8))}
+  | IF LPAREN expr RPAREN LBRACE stmts RBRACE %prec NOELSE {Conditional(If($3, $6, Else([])))}
+  | IF LPAREN expr RPAREN LBRACE stmts RBRACE else_stmt {Conditional(If($3, $6, $8))}
   | SEMI {Empty}
 
 match_conditions:
-  match_condition block {[($1, $2)]}
-  | match_condition block VERT match_conditions {($1, $2) :: $4}
+  match_condition LBRACE stmts RBRACE {[($1, $3)]}
+  | match_condition LBRACE stmts RBRACE VERT match_conditions {($1, $3) :: $6}
 
 match_condition:
-  post_expr LPAREN opt_typs RPAREN {MatchConditional($1, $3)}
-  | post_expr {MatchConditional($1, [])}
+  post_expr %prec NOCOMMA {MatchConditional($1, [])}
+  | post_expr LPAREN opt_typs RPAREN {MatchConditional($1, $3)}
   | post_expr LPAREN opt_typs RPAREN WHEN expr {WhenMatchConditional($1, $3, $6)}
   | post_expr WHEN expr {WhenMatchConditional($1, [], $3)}
 
 else_stmt:
-  ELIF LPAREN expr RPAREN block %prec NOELSE {ElIf(If($3, $5, Else(Empty)))}
-  | ELIF LPAREN expr RPAREN block else_stmt {ElIf(If($3, $5, $6))}
-  | ELSE block {Else($2)}
+  ELIF LPAREN expr RPAREN LBRACE stmts RBRACE %prec NOELSE {ElIf(If($3, $6, Else([])))}
+  | ELIF LPAREN expr RPAREN LBRACE stmts RBRACE else_stmt {ElIf(If($3, $6, $8))}
+  | ELSE LBRACE stmts RBRACE {Else($3)}
 
 exprs:
   expr %prec NOCOMMA {[$1]}
   | expr COMMA exprs {$1 :: $3}
 
 expr:
-  TRY pre_expr bin_exprs COLON expr {TryPrefix($2, $3, $5)}
-  | pre_expr bin_exprs {Prefix($1, $2)}
+  pre_expr bin_exprs {Prefix($1, $2)}
 
 pre_expr:
   DECREMENT post_expr %prec PREDECREMENT {PrefixOp(PreDecrement, $2)}
   | INCREMENT post_expr %prec PREDECREMENT {PrefixOp(PreIncrement, $2)}
   | FORCE %prec NEGATE post_expr {PrefixOp(Negate, $2)}
   | MINUS post_expr %prec UMINUS {PrefixOp(UMinus, $2)}
-  | post_expr {Postfix($1)}
+  | TRY pre_expr COLON pre_expr {TryPrefix($2, $4)}
+  | post_expr %prec NOCOMMA {Postfix($1)}
 
 bin_exprs:
-  /* */ {[]}
+  /* */ %prec NOCOMMA {[]}
   | bin_expr bin_exprs {$1 :: $2}
 
 bin_expr:
@@ -187,7 +188,7 @@ bin_expr:
   | EQ pre_expr {BinOp(Equal, $2)}
   | NEQ pre_expr {BinOp(NotEqual, $2)}
   | IS pre_expr {Is($2)}
-  /*| QUEST expr COLON expr {TertiaryOp($2, $4)}*/
+  | QUEST expr COLON pre_expr {TertiaryOp($2, $4)}
   | ASSIGN pre_expr {Assign(AEq, $2)}
   | PLUSASSIGN pre_expr {Assign(APlus, $2)}
   | MINUSASSIGN pre_expr {Assign(AMinus, $2)}
@@ -198,7 +199,7 @@ bin_expr:
 post_expr:
   opt_typ %prec NOCOMMA {$1}
   | literal {Literal($1)}
-  | LPAREN opt_typs RPAREN{TupleId($2)}
+  | LPAREN opt_typs RPAREN {TupleId($2)}
   | post_expr brack_exprs {TableAccess($1, $2)}
   | post_expr paren_tuple_exprs {TupleAccess($1, $2)}
   | post_expr LPAREN RPAREN {Call($1, [])}

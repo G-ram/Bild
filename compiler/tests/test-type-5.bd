@@ -1,4 +1,4 @@
 fun a(){
-  type b = R | S | P | L | K
+  type b = R | S | P | L | K;
   return R;
 }

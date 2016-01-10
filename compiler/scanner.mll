@@ -26,7 +26,7 @@ rule token = parse
 	| '(' {LPAREN} | ')' {RPAREN}
 	| ';' {SEMI} | ':' {COLON}
 	| ',' {COMMA} | '.' {PERIOD} | '|' {VERT}
-	| "fun" {FUN} | "print" {PRINT}
+  | "fun" {FUN} | "print" {PRINT}
 	| "in" {IN}
   | "true" {BOOL(true)} | "false" {BOOL(false)}
   | "else" {ELSE} | "if" {IF} | "elif" {ELIF}

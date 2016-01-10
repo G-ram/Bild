@@ -1,8 +1,8 @@
-type a = {
+type a = A {
   fun printHello(){
     print("hello");
   }
-} B of int | C of string
+} | B of int | C of string
 d =  B(4);
 e = C("hey");
 d.printHello();

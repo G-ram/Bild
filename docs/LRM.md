@@ -96,7 +96,7 @@
 	* 12.5 Java Language Reference Manual 
 
 ## 1. Introduction
-Bild is a new, compiled programming lanaguage that seeks to take the best parts of imperative and functional languages and combine them into one concise language. Bild was inspired by Javascript, Swift, Haskell, OCaml, and Python and includes only the best features of each language. While the syntax of Bild will seem familiar to those who have programmed in any popular imperative langauge (C, Javascript, Java, etc.), Bild is inherently functional. 
+Bild is a new, compiled programming language that seeks to take the best parts of imperative and functional languages and combine them into one concise language. Bild was inspired by Javascript, Swift, Haskell, OCaml, and Python and includes only the best features of each language. While the syntax of Bild will seem familiar to those who have programmed in any popular imperative or functional language (Java, OCaml, etc.), Bild is technically imperative, since complex types are not deep-copied on assignment. 
 
 At the moment, the Bild compiler compiles Bild code to valid Java code and then relies on the Java Virtual Machine for portability, garbage collection, and runtime environment.
 

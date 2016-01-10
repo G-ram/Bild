@@ -25,11 +25,11 @@ and table_literal =
   | ArrayLiteral of expr list
   | KeyValueLiteral of (key_literal * expr) list
 and expr =
-  TryPrefix of pre_expr * (bin_expr list) * expr
-  | Prefix of pre_expr * (bin_expr list)
+  Prefix of pre_expr * (bin_expr list)
 and pre_expr =
   PrefixOp of pre_op * post_expr
   | Postfix of post_expr
+  | TryPrefix of pre_expr * pre_expr
 and post_expr =
   Discard
   | Id of string
@@ -45,62 +45,62 @@ and post_expr =
 and bin_expr =
   BinOp of bin_op * pre_expr
   | Assign of assign_op * pre_expr
-  | TertiaryOp of expr * expr
+  | TertiaryOp of expr * pre_expr
   | Is of pre_expr
 
 type stmt =
   Expr of expr
   | Block of (stmt list)
   | Conditional of conditional_stmt
-  | NestedTypeDeclarator of declarator
+  | NestedTypeDeclarator of typ
   | Print of expr
   | Return of expr
   | Raise of expr
   | Break
   | Empty
 and conditional_stmt =
-  If of expr * stmt * else_stmt
-  | Try of stmt * expr * stmt
-  | While of expr * stmt
-  | For of expr * expr * expr * stmt
-  | ForIn of post_expr * expr * stmt
-  | Match of expr * ((match_conditional * stmt) list)
+  If of expr * (stmt list) * else_stmt
+  | Try of (stmt list) * expr * (stmt list)
+  | While of expr * (stmt list)
+  | For of expr * expr * expr * (stmt list)
+  | ForIn of post_expr * expr * (stmt list)
+  | Match of expr * ((match_conditional * (stmt list)) list)
 and else_stmt =
   ElIf of conditional_stmt
-  | Else of stmt
+  | Else of (stmt list)
 and match_conditional =
   MatchConditional of post_expr * (post_expr list)
   | WhenMatchConditional of post_expr * (post_expr list) * expr
-and declarator =
-  FxnDeclarator of fxn
-  | ImportDeclarator of string
-  | TypeDeclarator of typ
 and fxn = {
   name : string;
 	params : (post_expr list);
-	body : stmt;
+	body : (stmt list);
 }
-and typ =
-  TypeNoGlobal of typ_no_global
-  | Type of reg_typ
-and typ_no_global = {
+and typ = {
     name: string;
+    global_body: stmt list;
     sub_typs: (sub_typ list)
 }
 and reg_typ = {
   name: string;
-  global_body: (part list);
+  global_body: stmt;
   sub_typs: (sub_typ list)
 }
 and sub_typ =
   Enum of string
-  | EnumType of string * post_expr
-  | NoInherit of string * (part list)
-  | Inherit of string * post_expr * (part list)
-and part =
-  Imports of (declarator list)
-  | Fxns of (declarator list)
-  | Typs of (declarator list)
-  | Stmts of (stmt list)
+  | EnumType of string * expr
+  | NoInherit of string * (nested_part list)
+  | Inherit of string * expr * (nested_part list)
+and nested_part =
+  NestedType of typ
+  | NestedFxn of fxn
+  | NestedStmt of stmt
 
-type program = Program of (part list)
+type part =
+  Fxn of fxn
+  | Typ of typ
+  | Stmt of stmt
+
+type import = ImportDeclarator of string
+
+type program = Program of (import list) * (part list)

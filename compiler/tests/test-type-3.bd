@@ -1,11 +1,11 @@
 type employee = E{
 	sal = 0;
-	setSalary(aSal){sal = aSal;}
-	getSalary(){return sal;}
+	fun setSalary(aSal){sal = aSal;}
+	fun getSalary(){return sal;}
 }
 type hourly_employee = HE of E{
 	hours = 40;
-	setSalary(aSal){sal = aSal/40;}
+	fun setSalary(aSal){sal = aSal/40;}
 }
 fun addSals(s1, s2){return s1 + s2;}
 em1 = E;
