@@ -51,7 +51,7 @@
 %%
 /*Program structure*/
 program:
-  imports parts EOF {Program($1, $2)}
+  imports parts EOF {($1, $2)}
 
 parts:
   /* */ %prec NOCOMMA {[]}
@@ -72,7 +72,7 @@ import:
 fxn:
   FUN ID LPAREN params RPAREN LBRACE stmts RBRACE{
     {
-      name = $2;
+      fname = $2;
       params = $4;
       body = $7;
     }
@@ -84,16 +84,16 @@ params:
   | post_expr COMMA params {$1::$3}
 
 typ:
-  TYPE ID ASSIGN LBRACE stmts RBRACE sub_typs {
+  TYPE ID ASSIGN LBRACE parts RBRACE sub_typs {
     {
-      name = $2;
+      tname = $2;
       global_body = $5;
       sub_typs = $7;
     }
   }
   | TYPE ID ASSIGN sub_typs {
     {
-      name = $2;
+      tname = $2;
       global_body = [];
       sub_typs = $4;
     }
@@ -104,19 +104,34 @@ sub_typs:
   | sub_typ VERT sub_typs {$1 :: $3}
 
 sub_typ:
-  ID %prec NOOF {Enum($1)}
-  | ID OF expr %prec NOCOMMA {EnumType($1,$3)}
-  | ID LBRACE nested_parts RBRACE {NoInherit($1, $3)}
-  | ID OF expr LBRACE nested_parts RBRACE {Inherit($1,$3,$5)}
-
-nested_parts:
-  /**/ %prec NOCOMMA {[]}
-  | nested_part nested_parts {$1 :: $2}
-
-nested_part:
-  stmt {NestedStmt($1)}
-  | fxn {NestedFxn($1)}
-  | typ %prec NOCOMMA {NestedType($1)}
+  ID %prec NOOF {
+    {
+      stname = $1;
+      oftyp = None;
+      body = [];
+    }
+  }
+  | ID OF expr %prec NOCOMMA {
+    {
+      stname = $1;
+      oftyp = Some($3);
+      body = [];
+    }
+  }
+  | ID LBRACE parts RBRACE {
+    {
+      stname = $1;
+      oftyp = None;
+      body = $3;
+    }
+  }
+  | ID OF expr LBRACE parts RBRACE {
+    {
+      stname = $1;
+      oftyp = Some($3);
+      body = $5;
+    }
+  }
 
 stmts:
   /* */ %prec NOCOMMA {[]}

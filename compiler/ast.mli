@@ -72,35 +72,25 @@ and match_conditional =
   MatchConditional of post_expr * (post_expr list)
   | WhenMatchConditional of post_expr * (post_expr list) * expr
 and fxn = {
-  name : string;
+  fname : string;
 	params : (post_expr list);
 	body : (stmt list);
 }
 and typ = {
-    name: string;
-    global_body: stmt list;
+    tname: string;
+    global_body: (part list);
     sub_typs: (sub_typ list)
 }
-and reg_typ = {
-  name: string;
-  global_body: stmt;
-  sub_typs: (sub_typ list)
+and sub_typ = {
+    stname: string;
+    oftyp: expr option;
+    body: (part list)
 }
-and sub_typ =
-  Enum of string
-  | EnumType of string * expr
-  | NoInherit of string * (nested_part list)
-  | Inherit of string * expr * (nested_part list)
-and nested_part =
-  NestedType of typ
-  | NestedFxn of fxn
-  | NestedStmt of stmt
-
-type part =
+and part =
   Fxn of fxn
   | Typ of typ
   | Stmt of stmt
 
 type import = ImportDeclarator of string
 
-type program = Program of (import list) * (part list)
+type program = (import list) * (part list)
