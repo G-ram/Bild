@@ -13,14 +13,14 @@ and conditional_stmt_f =
   | Try of (stmt_f list) * Ast.expr * (stmt_f list)
   | While of Ast.expr * (stmt_f list)
   | For of Ast.expr * Ast.expr * Ast.expr * (stmt_f list)
-  | ForIn of Ast.post_expr * Ast.expr * (stmt_f list)
+  | ForIn of Ast.expr * Ast.expr * (stmt_f list)
   | Match of Ast.expr * ((Ast.match_conditional * (stmt_f list)) list)
 and else_stmt_f =
   ElIf of conditional_stmt_f
   | Else of (stmt_f list)
 and fxn_f = {
   fname : string;
-	params : (Ast.post_expr list);
+	params : (Ast.expr list);
 	body : (stmt_f list);
 }
 and typ_f = {
@@ -32,7 +32,7 @@ and typ_f = {
 }
 and sub_typ_f = {
   stname: string;
-  oftyp: Ast.expr option;
+  oftyp: Ast.expr list option;
   nested_typs: typ_f list;
   nested_fxns: fxn_f list;
   nested_stmts: stmt_f list;

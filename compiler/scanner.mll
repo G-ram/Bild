@@ -14,7 +14,6 @@ let digits = ['0' - '9']+
 let signed_int = ['+' '-']? digits
 let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_int)?
 let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
-let opt_id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*'?'
 
 rule token = parse
   [' ' '\t'] {token lexbuf}
@@ -37,12 +36,11 @@ rule token = parse
   | "type" {TYPE}
   | "import" {IMPORT}
   | "of" {OF} | "is" {IS}
-  | '?' {QUEST} | '!' {FORCE} | '_' {UNDER}
+  | '?' {QUEST} | '!' {NEGATE} | '_' {UNDER}
 	| '<' {LT} | '>' {GT} | "==" {EQ} | "!=" {NEQ} | ">=" {GEQ} | "<=" {LEQ} | "&&" {AND} | "||" {OR}
-	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDE} | '%' {MOD}
+	| '+' {PLUS} | '-' {MINUS} | '*' {TIMES} | '/' {DIVIDE} | '%' {MOD} | '!' {FORCE}
   | "++" {INCREMENT} | "--" {DECREMENT}
   | '=' {ASSIGN} | "+=" {PLUSASSIGN} | "-=" {MINUSASSIGN} | "*=" {TIMESASSIGN} | "/=" {DIVIDEASSIGN} | "%=" {MODASSIGN} | "!=" {FORCEASSIGN}
-  | opt_id as lxm{ID(wrap_id lxm)}
   | id as lxm {ID(wrap_id lxm)}
 	| digits as lxm {INT(int_of_string lxm)}
 	| decimal as lxm {DOUBLE(float_of_string lxm)}
