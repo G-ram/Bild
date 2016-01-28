@@ -42,6 +42,7 @@ and expr =
   | PostfixOp of expr * post_op
   | BinOp of expr * bin_op * expr
   | Assign of expr * assign_op * expr
+  | MultiAssign of (expr list) * assign_op * (expr list)
   | TertiaryOp of expr * expr * expr
   | Is of expr * expr
 

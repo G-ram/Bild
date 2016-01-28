@@ -205,6 +205,13 @@ expr:
   | expr DIVIDEASSIGN expr {Assign($1, ADivide, $3)}
   | expr MODASSIGN expr {Assign($1, AMod, $3)}
   | expr FORCEASSIGN expr {Assign($1, AForce, $3)}
+  | LPAREN exprs RPAREN ASSIGN LPAREN exprs RPAREN {MultiAssign($2, AEq, $6)}
+  | LPAREN exprs RPAREN PLUSASSIGN LPAREN exprs RPAREN {MultiAssign($2, APlus, $6)}
+  | LPAREN exprs RPAREN MINUSASSIGN LPAREN exprs RPAREN {MultiAssign($2, AMinus, $6)}
+  | LPAREN exprs RPAREN TIMESASSIGN LPAREN exprs RPAREN {MultiAssign($2, ATimes, $6)}
+  | LPAREN exprs RPAREN DIVIDEASSIGN LPAREN exprs RPAREN {MultiAssign($2, ADivide, $6)}
+  | LPAREN exprs RPAREN MODASSIGN LPAREN exprs RPAREN {MultiAssign($2, AMod, $6)}
+  | LPAREN exprs RPAREN FORCEASSIGN LPAREN exprs RPAREN {MultiAssign($2, AForce, $6)}
   /*PostOps*/
   | id %prec NOCOMMA {Id($1)}
   | literal {Literal($1)}

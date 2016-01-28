@@ -4,7 +4,6 @@ type t = Int | Double | Char | String | Bool
         | Opt of t | Func of t | Void
 
 (* Add expressions*)
-
 type expr_t = expr_det * t
 and expr_det =
   PrefixOp of Ast.pre_op * expr_t
@@ -19,6 +18,7 @@ and expr_det =
   | BinOp of expr_t * Ast.bin_op * expr_t
   | Assign of expr_t * Ast.assign_op * expr_t
   | VAssign of expr_t * Ast.assign_op * expr_t
+  | MultiAssign of expr_t list
   | TertiaryOp of expr_t * expr_t * expr_t
   | Is of expr_t * expr_t
 
@@ -66,10 +66,13 @@ and fxn_t = {
   returns: (stmt_t ref) list
 }
 
-type symbol_table = {
+type variable =
+  RegTyp of string * t
+  | FxnTyp of string * t
+  | TypeTyp of string * t * (symbol_table ref option)
+and symbol_table = {
   parent: symbol_table option;
-  mutable variables: (string * t) list;
-  mutable typs: typ_t list;
+  mutable variables: variable list;
 }
 
 type program_t = {

@@ -1,7 +1,7 @@
 open Sast
 open Util
 
-let rec check_literal scope program = function
+let rec check_literal = function
   Ast.Int(i) -> Int
   | Ast.Double(d) -> Double
   | Ast.String(s) -> String
@@ -10,37 +10,37 @@ let rec check_literal scope program = function
   | Ast.Table(t) -> Bool (*Work Here*)
   | Ast.Tuple(t) -> Tuple(check_expr_typs t scope program)
 
-and check_expr_typs exprs scope program = List.map (fun e -> snd(check_expr scope program e)) exprs
+and check_expr_typs exprs = List.map (fun e -> snd(check_expr e)) exprs
 
-and check_expr scope program = function
+and check_expr = function
   Ast.PrefixOp(op, e) ->
-    let (e, typ) = check_expr scope program e in
+    let (e, typ) = check_expr e in
     (match typ with
        _ when (op = Ast.PreIncrement || op = Ast.PreDecrement || op = Ast.UMinus) && is_arith typ ->   PrefixOp(op, (e, typ)), typ
       | Bool when op = Ast.Negate -> PrefixOp(op, (e, typ)), typ
       | _ -> raise(Failure("prefix expression has invalid type"))
     )
   | Ast.TryPrefix(e1, e2) ->
-    let (e1, typ1) = check_expr scope program e1 in
-    let (e2, typ2) = check_expr scope program e2 in
+    let (e1, typ1) = check_expr e1 in
+    let (e2, typ2) = check_expr e2 in
     (match typ1 with
-      Opt(t) -> TryPrefix((e1, typ1), (e2, typ2)), (check_typ_same t typ2)
+      Opt(t) -> TryPrefix((e1, typ1), (e2, typ2)), (is_typ_same t typ2)
       | _ -> raise(Failure("try expression is only valid for optional types"))
     )
   | Ast.Id(v) -> (*Work Here*)
     let vdecl = try
-      find_var_and_scope scope v
+      find_var_and_scope scope (hash_id v)
     with Not_found ->
       raise (Failure("undeclared identifier " ^ v)) in
     let (v, typ) = vdecl in
     Id(v), typ
-  | Ast.Literal(l) -> Literal(l), (check_literal scope program l )
+  | Ast.Literal(l) -> Literal(l), (check_literal l )
   | Ast.TableAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.TupleAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.TypeAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.Call(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.PostfixOp(e, op) ->
-    let (e, typ) = check_expr scope program e in
+    let (e, typ) = check_expr e in
     (match op with
       Ast.PostIncrement when is_arith typ ->
         PostfixOp((e, typ), op), typ
@@ -49,36 +49,52 @@ and check_expr scope program = function
       | _ -> raise(Failure("postfix expression has invalid type"))
     )
   | Ast.BinOp(e1, op, e2) ->
-    let (e1, typ1) = check_expr scope program e1 in
-    let (e2, typ2) = check_expr scope program e2 in
+    let (e1, typ1) = check_expr e1 in
+    let (e2, typ2) = check_expr e2 in
     (match op with
       Ast.Plus -> BinOp((e1, typ1), op, (e2, typ2)), (is_cast typ1 typ2)
       | _ when is_arith typ1 && is_arith typ2 -> BinOp((e1, typ1), op, (e2, typ2)), (is_cast typ1 typ2)
       | _ -> raise(Failure("binary expression has invalid type(s)"))
     )
-  | Ast.Assign(v, op, e) -> (*Work Here*)
-    let (e, typ) = check_expr scope program e in
-    let (v, vtyp) = check_expr scope program v in
-    if is_assignable v then
-
-    else
+  | Ast.Assign(v, op, e) ->
+    let (e, typ) = check_expr e in
+    (match (is_assignable v), v, e with
+      true, Ast.Id(id), _ -> (
+          try
+            let (v, vtyp) = find_var_and_scope scope (hash_id id) in
+            Assign((v, vtyp), op, (e, typ)), is_typ_same typ vtyp
+          with Not_found ->
+            ignore(scope.variables <- (RegTyp(hash_id id, typ):: scope.variables)) ;
+            VAssign((v, typ), op, (e, typ)), typ
+        )
+      | true, t, _ -> let (v, vtyp) = check_expr t in
+        Assign((v vtyp), op, (e, typ)), is_typ_same typ vtyp
+      | _, _, _ -> raise(Failure("type is not assignable; found value, not variable"))
+    )
+  | Ast.MultiAssign(el2, op, el2) ->
+    let typs = [] in
+    let el = List.map2 (fun e1 e2 ->
+        let (e, typ) = check_expr Ast.Assign(e1, op, e2) in ignore(typ :: typs) ; (e, typ)
+      ) el1 el2 in
+    MultiAssign(el), Tuple(typs)
   | Ast.TertiaryOp(e1, e2, e3) ->
-    let (e1, typ1) = check_expr scope program e1 in
-    let (e2, typ2) = check_expr scope program e2 in
-    let (e3, typ3) = check_expr scope program e3 in
-    if is_arith typ1 then
-      TertiaryOp((e1, typ1), (e2, typ2), (e3, typ3)), (check_typ_same typ2 typ3)
-    else raise(Failure("predicate is not valid bool type"))
+    let (e1, typ1) = check_expr e1 in
+    let (e2, typ2) = check_expr e2 in
+    let (e3, typ3) = check_expr e3 in
+    (match is_arith typ1 with
+      true -> TertiaryOp((e1, typ1), (e2, typ2), (e3, typ3)), (is_typ_same typ2 typ3)
+      | _ -> raise(Failure("predicate is not valid bool type"))
+    )
   | Ast.Is(e1, e2) ->
-    let (e1, typ1) = check_expr scope program e1 in
-    let (e2, typ2) = check_expr scope program e2 in
-    TryPrefix((e1, typ1), (e2, typ2)), (check_typ_same typ1 typ2)
+    let (e1, typ1) = check_expr e1 in
+    let (e2, typ2) = check_expr e2 in
+    TryPrefix((e1, typ1), (e2, typ2)), (is_typ_same typ1 typ2)
   | Ast.Discard -> Discard, Void
 
 let rec check_stmt = function
   Fast.Expr(e) -> Expr(check_expr e)
   | Fast.Block(sl) -> Block(check_stmt_list sl)
-  | Fast.Conditional(s) ->
+  | Fast.Conditional(s) -> Conditional(check_conditional_stmt s)
   | Fast.NestedTypeDeclarator(t) -> Empty (*Work Here*)
   | Fast.Print(e) -> Print(check_expr e)
   | Fast.Return(e) -> Return(check_expr e)

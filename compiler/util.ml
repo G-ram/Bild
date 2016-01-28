@@ -1,30 +1,33 @@
 open Sast
 
-let rec find_var_and_scope (scope : symbol_table) name = try
-  (List.find (fun (s, _) -> s = name) scope.variables) with Not_found ->
+let rec find_var_and_scope (scope : symbol_table) name = try (
+    List.find (fun s ->
+      (match s with
+        RegTyp(n, t) -> n == name
+        | FxnTyp(n, t) -> n == name
+        | TypeTyp(n, t, s2) -> n == name (*Work Here*)
+      )
+    ) scope.variables
+  ) with Not_found ->
   match scope.parent with
     Some(parent) -> find_var_and_scope parent name
     | _ -> raise Not_found
 
-let check_typ_same a b = match a, b with
+let is_typ_same a b = match a, b with
   _, _ when a = b -> a
   | _, _ -> raise(Failure("type mismatch"))
 
-let hash_id = function
-    Id(i) -> i
-    | OptId(i) -> i
-    | TupleId(l) -> List.fold_left (
-      fun t (i, _) ->
-        let id = hash_id i in t ^ id
-      ) "" l
-    | Discard -> "_"
-    | _ -> ""
+let rec hash_id = function
+  Ast.StdId(i) -> i
+  | Ast.OptId(i) -> i
+  | Ast.ForceId(i) -> i
+  | _ -> ""
 
 let rec is_assignable = function
-  Id(_) -> true
-  | TableAccess(_, _) -> true
-  | TupleAccess(_, _) -> true
-  | TypeAccess(_, el) -> is_assignable (tl el)
+  Ast.Id(_) -> true
+  | Ast.TableAccess(_, _) -> true
+  | Ast.TupleAccess(_, _) -> true
+  | Ast.TypeAccess(_, el) -> is_assignable (List.hd (List.rev el))
   | _ -> false
 
 let is_cast typ1 typ2 = match typ1, typ2 with
