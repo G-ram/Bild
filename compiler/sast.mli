@@ -1,5 +1,5 @@
 type t = Int | Double | Char | String | Bool
-        | Table of t option | Tuple of (t list)
+        | Table of t | Tuple of (t list)
         | Custom of string * (t option)
         | Opt of t | Func of t | Void
 
@@ -43,8 +43,8 @@ type stmt_t =
   ElIf of conditional_stmt_t
   | Else of (stmt_t list)
   and match_conditional_t =
-  MatchConditional of expr_t * (expr_t list)
-  | WhenMatchConditional of expr_t * (expr_t list) * expr_t
+  MatchConditional of expr_t * expr_t
+  | WhenMatchConditional of expr_t * expr_t * expr_t
 and typ_t = {
   tname: string;
   global_typs: typ_t list;

@@ -44,3 +44,33 @@ let is_arith = function
   | Int -> true
   | Double -> true
   | _ -> false
+
+let rec is_void = function
+  Table(t) -> is_void t
+  | Void -> true
+  | _ -> false
+
+let unwrap_typ el t =
+  let len = List.length el in
+  let rec helper ct l = match ct, l with
+    typ, 0 -> typ
+    | Table(typ), x when x > 0 -> helper typ (x-1)
+    | _, _ -> raise(Failure("table is not of dimension accessed"))
+  in helper t len
+
+let is_id_like = function
+  Id(_) -> true
+  | TableAccess(_, _) -> true
+  | TypeAccess(_, _) -> true
+  | TupleAccess(_, _) -> true
+  | _ -> false
+
+let is_string_int = function
+  Int -> true
+  | String -> true
+  | _ -> false
+
+let is_string_ints el = List.fold_left (
+  fun t (e, typ) ->
+    (is_string_int typ) && t
+  ) true el
