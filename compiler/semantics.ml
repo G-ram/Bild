@@ -13,21 +13,15 @@ let rec check_literal scope = function
       | Ast.ArrayLiteral(el) ->
         let el = check_exprs scope el in
         (*Make sure all the value are the same type*)
-        let t = List.fold_left (fun ct (e, typ) -> (
-          match typ with
-            ct -> ct
-            | _ -> raise(Failure("array contains values of different types"))
-          )
+        let t = List.fold_left (fun ct (e, typ) ->
+          is_typ_same ct typ
         ) (snd (List.hd el)) el in
         Table(t)
       | Ast.KeyValueLiteral(el) ->
         let el = List.map (fun (k, e) -> k, (check_expr scope e)) el in
         (*Make sure all the value are the same type*)
-        let t = List.fold_left (fun ct (k, (e, typ)) -> (
-          match typ with
-            ct -> ct
-            | _ -> raise(Failure("array contains values of different types"))
-          )
+        let t = List.fold_left (fun ct (k, (e, typ)) ->
+          is_typ_same ct typ
         ) (snd (snd (List.hd el))) el in
         Table(t)
     )
@@ -75,7 +69,27 @@ and check_expr scope = function
       | _, _ -> raise(Failure("cannot access provided specifier"))
     ) in
     ta
-  | Ast.TupleAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
+  | Ast.TupleAccess(e, il) ->
+    let (e, typ) = check_expr scope e in
+    let (e, typ) = e, (
+      match typ with
+        Tuple(tl) ->
+          let rec det_typ ctl (i :: cil) = (
+              try (
+                match (List.nth ctl i), (List.length cil) with
+                  Tuple(ntl), _ -> det_typ ntl cil (*Found tuple element with more indices to eval*)
+                  | t , 0 -> t (*Found some type on last index*)
+                  | _, _ -> raise(Failure("too many dimensions specified for tuple access"))
+                )
+              with
+                Invalid_argument(_) -> raise(Failure("trying to access element at negative index"))
+                | Failure(_) -> raise(Failure("tuple index out of bounds exception"))
+            )
+          in det_typ tl il
+        | _ -> raise(Failure("specifier is not tuple"))
+      ) in
+      let ta = TupleAccess((e, typ), il), typ in
+      ta
   | Ast.TypeAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.Call(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
   | Ast.PostfixOp(e, op) ->

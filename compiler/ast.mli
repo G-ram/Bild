@@ -36,7 +36,7 @@ and expr =
   | Id of id
   | Literal of literal
   | TableAccess of expr * (expr list)
-  | TupleAccess of expr * (expr list)
+  | TupleAccess of expr * (int list)
   | TypeAccess of expr * (expr list)
   | Call of expr * (expr list)
   | PostfixOp of expr * post_op

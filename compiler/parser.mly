@@ -239,8 +239,8 @@ brack_exprs:
 	| LBRACK expr RBRACK brack_exprs {$2 :: $4}
 
 paren_tuple_exprs:
-  PERIOD LPAREN expr RPAREN %prec NOCOMMA {[$3]}
-  | PERIOD LPAREN expr RPAREN paren_tuple_exprs {$3 :: $5}
+  PERIOD LPAREN INT RPAREN %prec NOCOMMA {[$3]}
+  | PERIOD LPAREN INT RPAREN paren_tuple_exprs {$3 :: $5}
 
 period_access_exprs:
   PERIOD expr %prec NOCOMMA {[$2]}

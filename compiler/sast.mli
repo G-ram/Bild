@@ -11,7 +11,7 @@ and expr_det =
   | Id of Ast.id
   | Literal of Ast.literal
   | TableAccess of expr_t * (expr_t list)
-  | TupleAccess of expr_t * (expr_t list)
+  | TupleAccess of expr_t * (int list)
   | TypeAccess of expr_t * (expr_t list)
   | Call of expr_t * (expr_t list)
   | PostfixOp of expr_t * Ast.post_op
