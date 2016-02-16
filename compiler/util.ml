@@ -3,9 +3,9 @@ open Sast
 let rec find_var_and_scope (scope : symbol_table) name = try (
     List.find (fun s ->
       (match s with
-        RegTyp(n, t) -> n == name
-        | FxnTyp(n, t) -> n == name
-        | TypeTyp(n, t, s2) -> n == name (*Work Here*)
+        Sast.RegTyp(n, t) -> n == name
+        | Sast.FxnTyp(n, t) -> n == name
+        | Sast.TypeTyp(n, t, s2) -> n == name (*Work Here*)
       )
     ) scope.variables
   ) with Not_found ->
@@ -32,45 +32,65 @@ let rec is_assignable = function
 
 let is_cast typ1 typ2 = match typ1, typ2 with
   _, _ when typ1 = typ2 -> typ1
-  | _, _ when typ1 = String || typ2 = String -> String
-  | Double, _ when typ2 = Int || typ2 = Char || typ2 = Bool -> Int
-  | _, Double when typ2 = Int || typ1 = Char || typ1 = Bool -> Int
-  | Int, _ when typ2 = Char || typ2 = Bool -> Int
-  | _, Int when typ1 = Char || typ1 = Bool -> Int
+  | _, _ when typ1 = Sast.String || typ2 = Sast.String -> Sast.String
+  | Sast.Double, _ when typ2 = Sast.Int || typ2 = Sast.Char || typ2 = Sast.Bool -> Sast.Int
+  | _, Sast.Double when typ2 = Sast.Int || typ1 = Sast.Char || typ1 = Sast.Bool -> Sast.Int
+  | Sast.Int, _ when typ2 = Sast.Char || typ2 = Sast.Bool -> Sast.Int
+  | _, Sast.Int when typ1 = Sast.Char || typ1 = Sast.Bool -> Sast.Int
   | _, _ -> raise(Failure("illegal cast"))
 
 let is_arith = function
-  Bool -> true
-  | Int -> true
-  | Double -> true
+  Sast.Bool -> true
+  | Sast.Int -> true
+  | Sast.Double -> true
   | _ -> false
 
 let rec is_void = function
-  Table(t) -> is_void t
-  | Void -> true
+  Sast.Table(t) -> is_void t
+  | Sast.Void -> true
   | _ -> false
 
 let unwrap_typ el t =
   let len = List.length el in
   let rec helper ct l = match ct, l with
     typ, 0 -> typ
-    | Table(typ), x when x > 0 -> helper typ (x-1)
+    | Sast.Table(typ), x when x > 0 -> helper typ (x-1)
     | _, _ -> raise(Failure("table is not of dimension accessed"))
   in helper t len
 
 let is_id_like = function
-  Id(_) -> true
-  | TableAccess(_, _) -> true
-  | TypeAccess(_, _) -> true
-  | TupleAccess(_, _) -> true
+  Sast.Id(_) -> true
+  | Sast.TableAccess(_, _) -> true
+  | Sast.TypeAccess(_, _) -> true
+  | Sast.TupleAccess(_, _) -> true
   | _ -> false
 
 let is_string_int = function
-  Int -> true
-  | String -> true
+  Sast.Int -> true
+  | Sast.String -> true
   | _ -> false
 
 let is_string_ints el = List.fold_left (
   fun t (e, typ) ->
     (is_string_int typ) && t
   ) true el
+
+(* filters for fast list*)
+
+let filter_typs stmts = List.filter (fun s ->
+    match s with
+      Ast.TypeDeclarator(_) -> true
+      | _ -> false
+  ) stmts
+
+let filter_stmts parts = List.filter (fun p ->
+    match p with
+      Ast.Stmt(_) -> true
+      | _ -> false
+  ) parts
+
+let filter_fxns parts = List.filter (fun p ->
+    match p with
+      Ast.Fxn(_) -> true
+      | _ -> false
+  ) parts

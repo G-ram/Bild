@@ -26,7 +26,7 @@ type stmt_t =
   Expr of expr_t
   | Block of (stmt_t list)
   | Conditional of conditional_stmt_t
-  | NestedTypeDeclarator of typ_t
+  | TypeDeclarator of typ_t
   | Print of expr_t
   | Return of expr_t
   | Raise of expr_t
@@ -60,7 +60,7 @@ and sub_typ_t = {
 }
 and fxn_t = {
   fname: string;
-  params: expr_t list;
+  params: Ast.id list;
   body: stmt_t list;
   return: t ref option;
   returns: (stmt_t ref) list

@@ -1,4 +1,4 @@
-OBJS = parser.cmo scanner.cmo util.cmo semantics.cmo format.cmo main.cmo
+OBJS = parser.cmo scanner.cmo util.cmo format.cmo semantics.cmo main.cmo
 
 bild : $(OBJS)
 	ocamlc -o bild $(OBJS)

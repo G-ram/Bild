@@ -50,7 +50,7 @@ type stmt =
   Expr of expr
   | Block of (stmt list)
   | Conditional of conditional_stmt
-  | NestedTypeDeclarator of typ
+  | TypeDeclarator of typ
   | Print of expr
   | Return of expr
   | Raise of expr
@@ -71,7 +71,7 @@ and match_conditional =
   | WhenMatchConditional of expr * (id list) * expr
 and fxn = {
   fname : string;
-	params : (expr list);
+	params : (id list);
 	body : (stmt list);
 }
 and typ = {
@@ -86,7 +86,6 @@ and sub_typ = {
 }
 and part =
   Fxn of fxn
-  | Typ of typ
   | Stmt of stmt
 
 type import = ImportDeclarator of string

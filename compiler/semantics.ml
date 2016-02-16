@@ -188,10 +188,19 @@ and check_sub_typ scope st = { (*Work Here*)
   nested_fxns: [];
   nested_stmts: check_stmt scope_list st.Fast.nested_stmts;
 }
-and check_fxn scope f = { (*Work Here*)
+and check_fxn scope f ps = { (*Work Here*)
   fname: f.Fast.fname;
   params: (
 
   );
-  body: check_stmt scope_list sl;
+  body: (
+    let sl = List.fold_left2 (fun p pi pe ->
+      match p with
+        Ast.TupleId(_) -> Ast.MultiAssign(pi, Ast.AEq, pe) :: p
+        Ast.StdId(_) | Ast.OptId(_) -> Ast.Assign(pi, Ast.AEq, pe) :: p
+        | _ -> raise(Failure("invalid parameter identifier"))
+      ) [] f.Fast.params ps in List.concat sl f.Fast.body
+    let b = check_stmt scope sl in b
+    );
+  return:;
 }*)

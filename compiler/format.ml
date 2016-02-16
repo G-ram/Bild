@@ -1,10 +1,14 @@
 open Fast
+open Util
 
 let rec format_stmt = function
   Ast.Expr(e) -> Expr(e)
   | Ast.Block(b) -> Block(format_stmt_list b)
   | Ast.Conditional(c) -> Conditional(format_conditional_stmt c)
-  | Ast.NestedTypeDeclarator(n) -> NestedTypeDeclarator(format_typ n)
+  | Ast.TypeDeclarator(n) ->
+    let formatted_typ = TypeDeclarator(format_typ n) in
+    ignore(Typ(ref formatted_typ) :: scope) ;
+    TypeDeclarator(format_typ n)
   | Ast.Print(p) -> Print(p)
   | Ast.Return(r) -> Return(r)
   | Ast.Raise(r) -> Raise(r)
@@ -23,7 +27,7 @@ and format_else_stmt = function
   Ast.ElIf(e) -> ElIf(format_conditional_stmt e)
   | Ast.Else(e) -> Else(format_stmt_list e)
 
-and format_stmt_list stmts = List.fold_left (
+and format_stmt stmts = List.fold_left (
     fun stmt_list s -> (format_stmt s) :: stmt_list
   ) [] stmts
 
@@ -43,20 +47,6 @@ and format_sub_typ sub_typ = {
   nested_stmts = format_stmts sub_typ.Ast.body;
 }
 
-and format_stmts parts = List.fold_left (
-  fun stmts s ->
-    match s with
-      Ast.Stmt(ms) -> (format_stmt ms) :: stmts
-      | _ -> stmts
-  ) [] parts
-
-and format_typs parts = List.fold_left (
-  fun typs t ->
-    match t with
-      Ast.Typ(mt) -> (format_typ mt) :: typs
-      | _ -> typs
-  ) [] parts
-
 and format_fxn fxn = {
   fname = fxn.Ast.fname;
   params = fxn.Ast.params;
@@ -70,9 +60,11 @@ and format_fxns parts = List.fold_left (
       | _ -> fxns
   ) [] parts
 
-let format_program (imports, parts) = {
+let format_program (imports, parts) =
+  let formatted_stmts = format_stmts (filter_stmts parts) in {
     imports = imports;
-    fxns = format_fxns parts;
-    typs = format_typs parts;
-    stmts = format_stmts parts;
+    stmts = formatted_stmts;
+    scope =
+    (List.map (fun f -> Fxn(ref f)) filter_fxns parts) ::
+    (List.map (fun t -> Typ(ref t)) filter_typs formatted_stmts);
   }

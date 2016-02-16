@@ -59,7 +59,6 @@ parts:
 
 part:
   fxn {Fxn($1)}
-  | typ %prec NOCOMMA {Typ($1)}
   | stmt {Stmt($1)}
 
 imports:
@@ -70,18 +69,20 @@ import:
   IMPORT STRING{ImportDeclarator($2)}
 
 fxn:
-  FUN ID LPAREN params RPAREN LBRACE stmts RBRACE{
+  FUN ID LPAREN ids RPAREN LBRACE stmts RBRACE{
     {
       fname = $2;
       params = $4;
       body = $7;
     }
   }
-
-params:
-	/* */ {[]}
-	| expr {[$1]}
-  | expr COMMA params {$1::$3}
+  | FUN ID LPAREN RPAREN LBRACE stmts RBRACE{
+    {
+      fname = $2;
+      params = [];
+      body = $6;
+    }
+  }
 
 typ:
   TYPE ID ASSIGN LBRACE parts RBRACE sub_typs {
@@ -140,7 +141,7 @@ stmts:
 stmt:
   expr SEMI {Expr($1)}
   | LBRACE stmts RBRACE {Block($2)}
-  | typ SEMI {NestedTypeDeclarator($1)}
+  | typ {TypeDeclarator($1)}
   | PRINT expr SEMI {Print($2)}
   | RETURN expr SEMI {Return($2)}
   | RAISE expr SEMI{Raise($2)}
