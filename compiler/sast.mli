@@ -26,7 +26,9 @@ type stmt_t =
   Expr of expr_t
   | Block of (stmt_t list)
   | Conditional of conditional_stmt_t
+  | Inline of string
   | TypeDeclarator of typ_t
+  | FxnDeclarator of fxn_t
   | Print of expr_t
   | Return of expr_t
   | Raise of expr_t

@@ -1,11 +1,15 @@
 {
   open Parser
   let wrap_id str = "_" ^ str ^ "_"
+  (*Inline*)
+  let inline = ref false
+  let end_inline = ref 1
   (*Keep track of line numbers*)
   let valid_line = ref 1
   let line_num = ref 1
   exception Syntax_error of string
   let syntax_error msg = raise (Syntax_error (msg ^ " on line " ^ (string_of_int !line_num)))
+  (*Return the character of string*)
   let strip_both_chars str = match String.length str with
     0 | 1 | 2 -> ""
     | len -> String.sub str 1 (len - 2)
@@ -15,17 +19,17 @@ let signed_int = ['+' '-']? digits
 let decimal = ['+' '-']? (digits '.' ['0'-'9']* | '.' digits) (['e' 'E'] signed_int)?
 let id = ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
-rule token = parse
-  [' ' '\t'] {token lexbuf}
-  | ['\r' '\n'] {incr line_num; token lexbuf}
-	| "/*" {multi_comment lexbuf}
-  | "//" {line_comment lexbuf}
+rule token pat = parse
+  [' ' '\t'] {token pat lexbuf}
+  | ['\r' '\n'] {incr line_num; token pat lexbuf}
+	| "/*" {multi_comment pat lexbuf}
+  | "//" {line_comment pat lexbuf}
 	| '[' {LBRACK} | ']' {RBRACK}
 	| '{' {LBRACE} | '}' {RBRACE}
 	| '(' {LPAREN} | ')' {RPAREN}
 	| ';' {SEMI} | ':' {COLON}
 	| ',' {COMMA} | '.' {PERIOD} | '|' {VERT}
-  | "fun" {FUN} | "print" {PRINT}
+  | "fun" {FUN} | "print" {PRINT} | "inline" {pat := true ; INLINE}
 	| "in" {IN}
   | "true" {BOOL(true)} | "false" {BOOL(false)}
   | "else" {ELSE} | "if" {IF} | "elif" {ELIF}
@@ -48,9 +52,24 @@ rule token = parse
   | '\'' [^ '\''] '\'' as lxm {CHAR((strip_both_chars lxm).[0])}
   | _ { syntax_error "couldn't identify the token" }
 	| eof {EOF}
-  and multi_comment = parse
-	"*/" {token lexbuf}
-	| _    {multi_comment lexbuf}
-  and line_comment = parse
-  ['\r' '\n'] {token lexbuf}
-	| _    {line_comment lexbuf}
+  and multi_comment pat = parse
+	"*/" {token pat lexbuf}
+	| _    {multi_comment pat lexbuf}
+  and line_comment pat = parse
+  ['\r' '\n'] {token pat lexbuf}
+	| _    {line_comment pat lexbuf}
+
+and inline_scan pat = parse
+  | "{" {end_inline := !end_inline + 1 ; CPP_STRING("{")}
+  | "}" {
+    match (!end_inline - 1) with
+    0 -> end_inline := 1 ; RBRACK
+    | _ -> end_inline := !end_inline - 1 ; pat := false ; CPP_STRING("}")
+  }
+  | _ as lxm {CPP_STRING("" ^ Char.escaped lxm)}
+
+{
+  let next_token lexbuf = match !inline with
+    | true -> inline_scan inline lexbuf
+    | false -> token inline lexbuf
+}

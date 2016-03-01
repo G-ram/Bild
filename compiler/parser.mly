@@ -12,9 +12,10 @@
 %token FUN TYPE IMPORT PRINT
 %token RAISE BREAK RETURN
 %token TRY CATCH
-%token IF ELIF ELSE FOR WHILE IN MATCH WHEN
+%token INLINE IF ELIF ELSE FOR WHILE IN MATCH WHEN
 %token SEMI COLON COMMA PERIOD VERT NEWLINE SEMI UNDER
 %token EOF
+%token <string> CPP_STRING
 %token <string> STRING
 %token <int> INT
 %token <float> DOUBLE
@@ -29,8 +30,8 @@
 %nonassoc ELIF
 %nonassoc COMMA PERIOD RPAREN LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE LBRACE SEMI UNDER
 %nonassoc FUN TYPE PRINT
-%nonassoc IF FOR WHILE IN MATCH WHEN CATCH RAISE BREAK RETURN
-%nonassoc STRING INT DOUBLE CHAR BOOL ID OPTID
+%nonassoc INLINE IF FOR WHILE IN MATCH WHEN CATCH RAISE BREAK RETURN
+%nonassoc STRING CPP_STRING INT DOUBLE CHAR BOOL ID OPTID
 %nonassoc INCREMENT DECREMENT FORCE
 %right ASSIGN PLUSASSIGN MINUSASSIGN TIMESASSIGN DIVIDEASSIGN MODASSIGN FORCEASSIGN
 %left AND
@@ -51,15 +52,7 @@
 %%
 /*Program structure*/
 program:
-  imports parts EOF {($1, $2)}
-
-parts:
-  /* */ %prec NOCOMMA {[]}
-  | part parts {$1 :: $2}
-
-part:
-  fxn {Fxn($1)}
-  | stmt {Stmt($1)}
+  imports stmts EOF {($1, $2)}
 
 imports:
   /* */ %prec NOCOMMA {[]}
@@ -71,31 +64,31 @@ import:
 fxn:
   FUN ID LPAREN ids RPAREN LBRACE stmts RBRACE{
     {
-      fname = $2;
+      name = $2;
       params = $4;
       body = $7;
     }
   }
   | FUN ID LPAREN RPAREN LBRACE stmts RBRACE{
     {
-      fname = $2;
+      name = $2;
       params = [];
       body = $6;
     }
   }
 
 typ:
-  TYPE ID ASSIGN LBRACE parts RBRACE sub_typs {
+  TYPE ID ASSIGN LBRACE stmts RBRACE sub_typs {
     {
-      tname = $2;
-      global_body = $5;
+      name = $2;
+      body = $5;
       sub_typs = $7;
     }
   }
   | TYPE ID ASSIGN sub_typs {
     {
-      tname = $2;
-      global_body = [];
+      name = $2;
+      body = [];
       sub_typs = $4;
     }
   }
@@ -107,28 +100,28 @@ sub_typs:
 sub_typ:
   ID %prec NOOF {
     {
-      stname = $1;
+      name = $1;
       oftyp = None;
       body = [];
     }
   }
   | ID OF exprs %prec NOCOMMA {
     {
-      stname = $1;
+      name = $1;
       oftyp = Some($3);
       body = [];
     }
   }
-  | ID LBRACE parts RBRACE {
+  | ID LBRACE stmts RBRACE {
     {
-      stname = $1;
+      name = $1;
       oftyp = None;
       body = $3;
     }
   }
-  | ID OF exprs LBRACE parts RBRACE {
+  | ID OF exprs LBRACE stmts RBRACE {
     {
-      stname = $1;
+      name = $1;
       oftyp = Some($3);
       body = $5;
     }
@@ -142,6 +135,8 @@ stmt:
   expr SEMI {Expr($1)}
   | LBRACE stmts RBRACE {Block($2)}
   | typ {TypeDeclarator($1)}
+  | fxn {FxnDeclarator($1)}
+  | INLINE LBRACK cpp_strings RBRACK {Inline($3)}
   | PRINT expr SEMI {Print($2)}
   | RETURN expr SEMI {Return($2)}
   | RAISE expr SEMI{Raise($2)}
@@ -263,3 +258,7 @@ key_val_exprs:
   | STRING COLON expr {[(StringKey($1), $3)]}
   | INT COLON expr COMMA key_val_exprs {(IntKey($1), $3) :: $5}
   | STRING COLON expr COMMA key_val_exprs {(StringKey($1), $3) :: $5}
+
+cpp_strings:
+  /* */ %prec NOCOMMA {""}
+  | CPP_STRING cpp_strings {$1 ^ $2}

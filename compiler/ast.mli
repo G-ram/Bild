@@ -50,7 +50,9 @@ type stmt =
   Expr of expr
   | Block of (stmt list)
   | Conditional of conditional_stmt
+  | Inline of string
   | TypeDeclarator of typ
+  | FxnDeclarator of fxn
   | Print of expr
   | Return of expr
   | Raise of expr
@@ -70,24 +72,21 @@ and match_conditional =
   MatchConditional of expr * (id list)
   | WhenMatchConditional of expr * (id list) * expr
 and fxn = {
-  fname : string;
+  name : string;
 	params : (id list);
 	body : (stmt list);
 }
 and typ = {
-    tname: string;
-    global_body: (part list);
-    sub_typs: (sub_typ list)
+  name: string;
+  body: (stmt list);
+  sub_typs: (sub_typ list)
 }
 and sub_typ = {
-    stname: string;
-    oftyp: (expr list) option;
-    body: (part list)
+  name: string;
+  oftyp: (expr list) option;
+  body: (stmt list)
 }
-and part =
-  Fxn of fxn
-  | Stmt of stmt
 
 type import = ImportDeclarator of string
 
-type program = (import list) * (part list)
+type program = (import list) * (stmt list)

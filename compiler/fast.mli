@@ -2,7 +2,9 @@ type stmt_f =
   Expr of Ast.expr
   | Block of (stmt_f list)
   | Conditional of conditional_stmt_f
+  | Inline of string
   | TypeDeclarator of typ_f
+  | FxnDeclarator of fxn_f
   | Print of Ast.expr
   | Return of Ast.expr
   | Raise of Ast.expr
@@ -18,30 +20,30 @@ and conditional_stmt_f =
 and else_stmt_f =
   ElIf of conditional_stmt_f
   | Else of (stmt_f list)
-and t_f = Func of fxn_f ref
-            | Typ of typ_f ref
-and symbol_table_f = SymbolTable of t_f list
+and t_f =
+  Fxn of stmt_f ref
+  | Typ of stmt_f ref
 and fxn_f = {
-  fname : string;
+  name : string;
 	params : (Ast.id list);
 	body : (stmt_f list);
-  scope: symbol_table_f;
+  scope: t_f list;
 }
 and typ_f = {
-  tname: string;
-  global_scope: symbol_table_f;
-  global_stmts: stmt_f list;
+  name: string;
+  stmts: stmt_f list;
   sub_typs: sub_typ_f list;
+  scope: t_f list;
 }
 and sub_typ_f = {
-  stname: string;
+  name: string;
   oftyp: Ast.expr list option; (*May need to add to symbol table*)
-  nested_stmts: stmt_f list;
-  scope: symbol_table_f;
+  stmts: stmt_f list;
+  scope: t_f list;
 }
 
 type program_f = {
   imports: Ast.import list;
   mutable stmts: stmt_f list;
-  mutable scope: symbol_table_f;
+  mutable scope: t_f list;
 }

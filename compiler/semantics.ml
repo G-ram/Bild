@@ -90,8 +90,8 @@ and check_expr scope = function
       ) in
       let ta = TupleAccess((e, typ), il), typ in
       ta
-  | Ast.TypeAccess(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
-  | Ast.Call(e, el) -> Literal(Ast.Int(5)), Int(*Work Here*)
+(*Work Here =======>*)  | Ast.TypeAccess(e, el) -> Literal(Ast.Int(5)), Int
+(*Work Here =======>*)  | Ast.Call(e, el) -> Literal(Ast.Int(5)), Int
   | Ast.PostfixOp(e, op) ->
     let (e, typ) = check_expr scope e in
     (match op with
@@ -117,7 +117,7 @@ and check_expr scope = function
             let res = find_var_and_scope scope (hash_id id) in
             let vtyp = (match res with
               RegTyp(n, t) -> t
-              | _ -> raise(Failure("trying to assign to a function or type"))
+              | _ -> raise(Failure("trying to assign a function or type"))
             ) in
             Assign((Id(id), vtyp), op, (e, typ)), is_typ_same typ vtyp
           with Not_found ->
@@ -126,7 +126,7 @@ and check_expr scope = function
         )
       | true, t, _ -> let (v, vtyp) = check_expr scope t in (*Table and Tuple Assigment*) (*Work Here*)
         Assign((v, vtyp), op, (e, typ)), is_typ_same typ vtyp
-      | _, _, _ -> raise(Failure("type is not assignable; found value, not variable"))
+      | _, _, _ -> raise(Failure("trying to assign a value"))
     )
   | Ast.MultiAssign(el1, op, el2) ->
     let typs = [] in
@@ -151,7 +151,9 @@ let rec check_stmt scope = function
   Fast.Expr(e) -> Expr(check_expr scope e)
   | Fast.Block(sl) -> Block(check_stmts scope sl)
   | Fast.Conditional(s) -> Conditional(check_conditional_stmt scope s)
-  | Fast.NestedTypeDeclarator(t) -> Empty (*Work Here*)
+  | Fast.Inline(s) -> Inline(s)
+(*Work Here =======>*)  | Fast.TypeDeclarator(t) -> Empty
+(*Work Here =======>*)  | Fast.FxnDeclarator(f) -> Empty
   | Fast.Print(e) -> Print(check_expr scope e)
   | Fast.Return(e) -> Return(check_expr scope e)
   | Fast.Raise(e) -> Raise(check_expr scope e)

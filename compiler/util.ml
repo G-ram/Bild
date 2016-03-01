@@ -1,15 +1,14 @@
-open Sast
-
-let rec find_var_and_scope (scope : symbol_table) name = try (
+(* misc type checking functions *)
+let rec find_var_and_scope (scope : Sast.symbol_table) name = try (
     List.find (fun s ->
       (match s with
         Sast.RegTyp(n, t) -> n == name
         | Sast.FxnTyp(n, t) -> n == name
         | Sast.TypeTyp(n, t, s2) -> n == name (*Work Here*)
       )
-    ) scope.variables
+    ) scope.Sast.variables
   ) with Not_found ->
-  match scope.parent with
+  match scope.Sast.parent with
     Some(parent) -> find_var_and_scope parent name
     | _ -> raise Not_found
 
@@ -75,22 +74,20 @@ let is_string_ints el = List.fold_left (
     (is_string_int typ) && t
   ) true el
 
-(* filters for fast list*)
+(* filters for fast list *)
 
 let filter_typs stmts = List.filter (fun s ->
     match s with
-      Ast.TypeDeclarator(_) -> true
+      Fast.TypeDeclarator(_) -> true
       | _ -> false
   ) stmts
 
-let filter_stmts parts = List.filter (fun p ->
-    match p with
-      Ast.Stmt(_) -> true
+let filter_fxns stmts = List.filter (fun s ->
+    match s with
+      Fast.FxnDeclarator(_) -> true
       | _ -> false
-  ) parts
+  ) stmts
 
-let filter_fxns parts = List.filter (fun p ->
-    match p with
-      Ast.Fxn(_) -> true
-      | _ -> false
-  ) parts
+let build_scope stmts =
+  (List.map (fun f -> Fast.Fxn(ref f)) (filter_fxns stmts)) @
+  (List.map (fun t -> Fast.Typ(ref t)) (filter_typs stmts))

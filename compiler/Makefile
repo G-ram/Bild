@@ -37,4 +37,4 @@ scanner.cmx: parser.cmx
 semantics.cmo: sast.cmi fast.cmi util.cmo
 format.cmo: fast.cmi
 parser.cmi: ast.cmi
-util.cmo: sast.cmi
+util.cmo: sast.cmi fast.cmi
